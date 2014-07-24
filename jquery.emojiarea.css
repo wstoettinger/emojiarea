@@ -57,3 +57,8 @@
 .emoji-menu a .label {
 	display: none;
 }
+
+.emoji-menu div {
+    overflow-x: hidden;
+    overflow-y: auto;   
+}
