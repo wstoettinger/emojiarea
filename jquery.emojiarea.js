@@ -427,8 +427,12 @@
 			if (i != 0) {
 				var select = $(this).attr('href');
 				$(select).hide();
+			} else {
+				$(this).addClass('active');
 			}
 			$(this).click(function() {
+				$(this).addClass('active');
+				$(this).siblings().removeClass('active');
 				$('.select_group').hide();
 				var select = $(this).attr('href');
 				$(select).show();

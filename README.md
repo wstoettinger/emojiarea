@@ -13,7 +13,7 @@ A small **6kb** [jQuery](http://jquery.com/) plugin for turning regular textarea
 
 ### Dropdown Menu
 
-![Dropdown Screenshot](http://i.imgur.com/8KPAu.png)
+![Dropdown Screenshot](http://i.imgur.com/EuTTpHk.png)
 
 By default, the plugin will insert a link after the editor that toggles the emoji selector when clicked.
 
