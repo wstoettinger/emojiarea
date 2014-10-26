@@ -1,4 +1,6 @@
-# .emojiarea()
+*NOTICE* This extends the [original plugin](https://github.com/diy/jquery-emojiarea) by groups. (See screenshot at dropdown menu)
+
+#.emojiarea()
 
 A small **6kb** [jQuery](http://jquery.com/) plugin for turning regular textareas into ones that support emojis, WYSIWYG style! Set up a list of available emojis, call `$('textarea').emojiarea()` and you're done (basically). There's a plain-text fallback, so if the browser doesn't support [contentEditable](http://caniuse.com/#search=contenteditable), it will degrade gracefully—the user will still be able to use the dropdown menu of emojis.
 
