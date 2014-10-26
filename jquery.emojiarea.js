@@ -1,14 +1,14 @@
-/** 
+/**
  * emojiarea - A rich textarea control that supports emojis, WYSIWYG-style.
  * Copyright (c) 2012 DIY Co
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License. You may obtain a copy of the License at:
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed under 
- * the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF 
- * ANY KIND, either express or implied. See the License for the specific language 
+ * Unless required by applicable law or agreed to in writing, software distributed under
+ * the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
+ * ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  *
  * @author Brian Reavis <brian@diy.org>
@@ -98,7 +98,7 @@
 					range.insertNode(document.createTextNode(' '));
 					range.insertNode(node);
 					range.setStart(node, 0);
-					
+
 					window.setTimeout(function() {
 						range = document.createRange();
 						range.setStartAfter(node);
@@ -162,10 +162,10 @@
 
 	EmojiArea.prototype.setup = function() {
 		var self = this;
-		
+
 		this.$editor.on('focus', function() { self.hasFocus = true; });
 		this.$editor.on('blur', function() { self.hasFocus = false; });
-		
+
 		this.setupButton();
 	};
 
@@ -189,7 +189,7 @@
 			EmojiMenu.show(self);
 			e.stopPropagation();
 		});
-		
+
 		this.$button = $button;
 	};
 
@@ -206,7 +206,7 @@
 
 	/**
 	 * Editor (plain-text)
-	 * 
+	 *
 	 * @constructor
 	 * @param {object} $textarea
 	 * @param {object} options
@@ -235,7 +235,7 @@
 
 	/**
 	 * Editor (rich)
-	 * 
+	 *
 	 * @constructor
 	 * @param {object} $textarea
 	 * @param {object} options
@@ -285,7 +285,7 @@
 		if ($img[0].attachEvent) {
 			$img[0].attachEvent('onresizestart', function(e) { e.returnValue = false; }, false);
 		}
-		
+
 		this.$editor.trigger('focus');
 		if (this.selection) {
 			util.restoreSelection(this.selection);
@@ -385,11 +385,13 @@
 		this.$menu.on('click', 'a', function(e) {
 			var emoji = $('.label', $(this)).text();
 			var group = $('.label', $(this)).parent().parent().attr('group');
-			window.setTimeout(function() {
-				self.onItemSelected.apply(self, [group, emoji]);
-			}, 0);
-			e.stopPropagation();
-			return false;
+			if(group && emoji !== ''){
+				window.setTimeout(function() {
+					self.onItemSelected.apply(self, [group, emoji]);
+				}, 0);
+				e.stopPropagation();
+				return false;
+			}
 		});
 
 		this.load();
@@ -445,7 +447,7 @@
 		var offset = $button.offset();
 		offset.top += $button.outerHeight();
 		offset.left += Math.round($button.outerWidth() / 2);
-		
+
 		this.$menu.css({
 			top: offset.top,
 			left: offset.left
