@@ -1,14 +1,14 @@
-/** 
+/**
  * emojiarea - A rich textarea control that supports emojis, WYSIWYG-style.
  * Copyright (c) 2012 DIY Co
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License. You may obtain a copy of the License at:
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed under 
- * the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF 
- * ANY KIND, either express or implied. See the License for the specific language 
+ * Unless required by applicable law or agreed to in writing, software distributed under
+ * the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
+ * ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  *
  * @author Brian Reavis <brian@diy.org>
@@ -98,7 +98,7 @@
 					range.insertNode(document.createTextNode(' '));
 					range.insertNode(node);
 					range.setStart(node, 0);
-					
+
 					window.setTimeout(function() {
 						range = document.createRange();
 						range.setStartAfter(node);
@@ -162,10 +162,10 @@
 
 	EmojiArea.prototype.setup = function() {
 		var self = this;
-		
+
 		this.$editor.on('focus', function() { self.hasFocus = true; });
 		this.$editor.on('blur', function() { self.hasFocus = false; });
-		
+
 		this.setupButton();
 	};
 
@@ -189,12 +189,12 @@
 			EmojiMenu.show(self);
 			e.stopPropagation();
 		});
-		
+
 		this.$button = $button;
 	};
 
-	EmojiArea.createIcon = function(emoji) {
-		var filename = $.emojiarea.icons[emoji];
+	EmojiArea.createIcon = function(group, emoji) {
+		var filename = $.emojiarea.icons[group]['icons'][emoji];
 		var path = $.emojiarea.path || '';
 		if (path.length && path.charAt(path.length - 1) !== '/') {
 			path += '/';
@@ -206,7 +206,7 @@
 
 	/**
 	 * Editor (plain-text)
-	 * 
+	 *
 	 * @constructor
 	 * @param {object} $textarea
 	 * @param {object} options
@@ -219,8 +219,8 @@
 		this.setup();
 	};
 
-	EmojiArea_Plain.prototype.insert = function(emoji) {
-		if (!$.emojiarea.icons.hasOwnProperty(emoji)) return;
+	EmojiArea_Plain.prototype.insert = function(group, emoji) {
+		if (!$.emojiarea.icons[group]['icons'].hasOwnProperty(emoji)) return;
 		util.insertAtCursor(emoji, this.$textarea[0]);
 		this.$textarea.trigger('change');
 	};
@@ -235,7 +235,7 @@
 
 	/**
 	 * Editor (rich)
-	 * 
+	 *
 	 * @constructor
 	 * @param {object} $textarea
 	 * @param {object} options
@@ -255,9 +255,11 @@
 
 		var html = this.$editor.text();
 		var emojis = $.emojiarea.icons;
-		for (var key in emojis) {
-			if (emojis.hasOwnProperty(key)) {
-				html = html.replace(new RegExp(util.escapeRegex(key), 'g'), EmojiArea.createIcon(key));
+		for (var group in emojis) {
+			for (var key in emojis[group]['icons']) {
+				if (emojis[group]['icons'].hasOwnProperty(key)) {
+					html = html.replace(new RegExp(util.escapeRegex(key), 'g'), EmojiArea.createIcon(group, key));
+				}
 			}
 		}
 		this.$editor.html(html);
@@ -277,13 +279,13 @@
 		this.$textarea.val(this.val()).trigger('change');
 	};
 
-	EmojiArea_WYSIWYG.prototype.insert = function(emoji) {
+	EmojiArea_WYSIWYG.prototype.insert = function(group, emoji) {
 		var content;
-		var $img = $(EmojiArea.createIcon(emoji));
+		var $img = $(EmojiArea.createIcon(group, emoji));
 		if ($img[0].attachEvent) {
 			$img[0].attachEvent('onresizestart', function(e) { e.returnValue = false; }, false);
 		}
-		
+
 		this.$editor.trigger('focus');
 		if (this.selection) {
 			util.restoreSelection(this.selection);
@@ -382,37 +384,62 @@
 
 		this.$menu.on('click', 'a', function(e) {
 			var emoji = $('.label', $(this)).text();
-			window.setTimeout(function() {
-				self.onItemSelected.apply(self, [emoji]);
-			}, 0);
-			e.stopPropagation();
-			return false;
+			var group = $('.label', $(this)).parent().parent().attr('group');
+			if(group && emoji !== ''){
+				window.setTimeout(function() {
+					self.onItemSelected.apply(self, [group, emoji]);
+				}, 0);
+				e.stopPropagation();
+				return false;
+			}
 		});
 
 		this.load();
 	};
 
-	EmojiMenu.prototype.onItemSelected = function(emoji) {
-		this.emojiarea.insert(emoji);
+	EmojiMenu.prototype.onItemSelected = function(group, emoji) {
+		this.emojiarea.insert(group, emoji);
 		this.hide();
 	};
 
 	EmojiMenu.prototype.load = function() {
 		var html = [];
+		var groups = [];
 		var options = $.emojiarea.icons;
 		var path = $.emojiarea.path;
 		if (path.length && path.charAt(path.length - 1) !== '/') {
 			path += '/';
 		}
-
-		for (var key in options) {
-			if (options.hasOwnProperty(key)) {
-				var filename = options[key];
-				html.push('<a href="javascript:void(0)" title="' + util.htmlEntities(key) + '">' + EmojiArea.createIcon(key) + '<span class="label">' + util.htmlEntities(key) + '</span></a>');
+		groups.push('<ul class="group-selector">');
+		for (var group in options) {
+		groups.push('<a href="#group_' + group + '" class="tab_switch"><li>' + options[group]['name'] + '</li></a>');
+		html.push('<div class="select_group" group="' + group + '" id="group_' + group + '">');
+			for (var key in options[group]['icons']) {
+				if (options[group]['icons'].hasOwnProperty(key)) {
+					var filename = options[key];
+					html.push('<a href="javascript:void(0)" title="' + util.htmlEntities(key) + '">' + EmojiArea.createIcon(group, key) + '<span class="label">' + util.htmlEntities(key) + '</span></a>');
+				}
 			}
+		html.push('</div>');
 		}
-
+		groups.push('</ul>');
 		this.$items.html(html.join(''));
+		this.$menu.prepend(groups.join(''));
+		this.$menu.find('.tab_switch').each(function(i) {
+			if (i != 0) {
+				var select = $(this).attr('href');
+				$(select).hide();
+			} else {
+				$(this).addClass('active');
+			}
+			$(this).click(function() {
+				$(this).addClass('active');
+				$(this).siblings().removeClass('active');
+				$('.select_group').hide();
+				var select = $(this).attr('href');
+				$(select).show();
+			});
+		});
 	};
 
 	EmojiMenu.prototype.reposition = function() {
@@ -420,7 +447,7 @@
 		var offset = $button.offset();
 		offset.top += $button.outerHeight();
 		offset.left += Math.round($button.outerWidth() / 2);
-		
+
 		this.$menu.css({
 			top: offset.top,
 			left: offset.left

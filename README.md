@@ -1,4 +1,11 @@
-# .emojiarea()
+*NOTICE* This extends the [original plugin](https://github.com/diy/jquery-emojiarea) by groups. (See screenshot at dropdown menu)
+
+#### About this extension
+This was originally created for my project [*The Msngr*](https://github.com/GittiHab/TheMsngr), which is now open source too. I am always happy about an attribution to me and my website, e.g. [\<a href="https://pius-ladenburger.de">Pius Ladenburger\</a>](https://pius-ladenburger.de).
+
+I hope this helps you and makes your day easier.
+
+#.emojiarea()
 
 A small **6kb** [jQuery](http://jquery.com/) plugin for turning regular textareas into ones that support emojis, WYSIWYG style! Set up a list of available emojis, call `$('textarea').emojiarea()` and you're done (basically). There's a plain-text fallback, so if the browser doesn't support [contentEditable](http://caniuse.com/#search=contenteditable), it will degrade gracefully—the user will still be able to use the dropdown menu of emojis.
 
@@ -13,7 +20,7 @@ A small **6kb** [jQuery](http://jquery.com/) plugin for turning regular textarea
 
 ### Dropdown Menu
 
-![Dropdown Screenshot](http://i.imgur.com/8KPAu.png)
+![Dropdown Screenshot](http://i.imgur.com/EuTTpHk.png)
 
 By default, the plugin will insert a link after the editor that toggles the emoji selector when clicked.
 
@@ -83,8 +90,10 @@ Basically, you'll want to adjust the following styles:
 
 ## License
 
-Copyright &copy; 2012 DIY Co
+Copyright &copy; 2012 DIY Co and 2015 Pius Ladenburger
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at: http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+
+I am always happy about an attribution to me and my website, e.g. [\<a href="https://pius-ladenburger.de">Pius Ladenburger\</a>](https://pius-ladenburger.de)
