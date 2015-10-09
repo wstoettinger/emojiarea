@@ -38,7 +38,7 @@
 		options = $.extend({}, $.emojiarea.defaults, options);
 		return this.each(function() {
 			var $textarea = $(this);
-			new EmojiArea_WYSIWYG($textarea, options);
+			new EmojiArea($textarea, options);
 		});
 	};
 
@@ -146,49 +146,7 @@
 
 	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	var EmojiArea = function() {};
-
-	EmojiArea.prototype.setup = function() {
-		var self = this;
-
-		this.$editor.on('focus', function() { self.hasFocus = true; });
-		this.$editor.on('blur', function() { self.hasFocus = false; });
-
-		this.setupButton();
-	};
-
-	EmojiArea.prototype.setupButton = function() {
-		var self = this;
-		var $button;
-
-		if (this.options.button) {
-			$button = $(this.options.button);
-		} else if (this.options.button !== false) {
-			$button = $('<a href="javascript:void(0)">');
-			$button.html(this.options.buttonLabel);
-			$button.addClass('emoji-button');
-			$button.attr({title: this.options.buttonLabel});
-			this.$editor[this.options.buttonPosition]($button);
-		} else {
-			$button = $('');
-		}
-
-		$button.on('click', function(e) {
-			EmojiMenu.show(self);
-			e.stopPropagation();
-		});
-
-		this.$button = $button;
-	};
-
-	EmojiArea.createIcon = function(group, emoji) {
-		var filename = $.emojiarea.icons[group].icons[emoji];
-		var path = $.emojiarea.path || '';
-		if (path.length && path.charAt(path.length - 1) !== '/') {
-			path += '/';
-		}
-		return '<img src="' + path + filename + '" alt="' + util.htmlEntities(emoji) + '">';
-	};
+	
 
 	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -200,7 +158,7 @@
 	 * @param {object} options
 	 */
 
-	var EmojiArea_WYSIWYG = function($textarea, options) {
+	var EmojiArea = function($textarea, options) {
 		var self = this;
 
 		this.options = options;
@@ -234,11 +192,53 @@
 		});
 	};
 
-	EmojiArea_WYSIWYG.prototype.onChange = function() {
+    EmojiArea.prototype.setup = function() {
+        var self = this;
+
+        this.$editor.on('focus', function() { self.hasFocus = true; });
+        this.$editor.on('blur', function() { self.hasFocus = false; });
+
+        this.setupButton();
+    };
+
+    EmojiArea.prototype.setupButton = function() {
+        var self = this;
+        var $button;
+
+        if (this.options.button) {
+            $button = $(this.options.button);
+        } else if (this.options.button !== false) {
+            $button = $('<a href="javascript:void(0)">');
+            $button.html(this.options.buttonLabel);
+            $button.addClass('emoji-button');
+            $button.attr({title: this.options.buttonLabel});
+            this.$editor[this.options.buttonPosition]($button);
+        } else {
+            $button = $('');
+        }
+
+        $button.on('click', function(e) {
+            EmojiMenu.show(self);
+            e.stopPropagation();
+        });
+
+        this.$button = $button;
+    };
+
+    EmojiArea.createIcon = function(group, emoji) {
+        var filename = $.emojiarea.icons[group].icons[emoji];
+        var path = $.emojiarea.path || '';
+        if (path.length && path.charAt(path.length - 1) !== '/') {
+            path += '/';
+        }
+        return '<img src="' + path + filename + '" alt="' + util.htmlEntities(emoji) + '">';
+    };
+
+	EmojiArea.prototype.onChange = function() {
 		this.$textarea.val(this.val()).trigger('change');
 	};
 
-	EmojiArea_WYSIWYG.prototype.insert = function(group, emoji) {
+	EmojiArea.prototype.insert = function(group, emoji) {
 		var content;
 		var $img = $(EmojiArea.createIcon(group, emoji));
 		if ($img[0].attachEvent) {
@@ -253,7 +253,7 @@
 		this.onChange();
 	};
 
-	EmojiArea_WYSIWYG.prototype.val = function() {
+	EmojiArea.prototype.val = function() {
 		var lines = [];
 		var line  = [];
 
@@ -298,8 +298,6 @@
 
 		return lines.join('\n');
 	};
-
-	$.extend(EmojiArea_WYSIWYG.prototype, EmojiArea.prototype);
 
 	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
