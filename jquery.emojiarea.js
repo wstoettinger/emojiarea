@@ -38,11 +38,7 @@
 		options = $.extend({}, $.emojiarea.defaults, options);
 		return this.each(function() {
 			var $textarea = $(this);
-			if ('contentEditable' in document.body && options.wysiwyg !== false) {
-				new EmojiArea_WYSIWYG($textarea, options);
-			} else {
-				new EmojiArea_Plain($textarea, options);
-			}
+			new EmojiArea_WYSIWYG($textarea, options);
 		});
 	};
 
@@ -51,6 +47,7 @@
 	var util = {};
 
 	util.restoreSelection = (function() {
+        console.log('restoreSelection');
 		if (window.getSelection) {
 			return function(savedSelection) {
 				var sel = window.getSelection();
@@ -69,6 +66,7 @@
 	})();
 
 	util.saveSelection = (function() {
+        console.log('saveSelection');
 		if (window.getSelection) {
 			return function() {
 				var sel = window.getSelection(), ranges = [];
@@ -88,6 +86,7 @@
 	})();
 
 	util.replaceSelection = (function() {
+        console.log('replaceSelection');
 		if (window.getSelection) {
 			return function(content) {
 				var range, sel = window.getSelection();
@@ -107,7 +106,7 @@
 						sel.addRange(range);
 					}, 0);
 				}
-			}
+			};
 		} else if (document.selection && document.selection.createRange) {
 			return function(content) {
 				var range = document.selection.createRange();
@@ -116,11 +115,12 @@
 				} else {
 					range.pasteHTML(content.outerHTML);
 				}
-			}
+			};
 		}
 	})();
 
 	util.insertAtCursor = function(text, el) {
+        console.log('insertAtCursor');
 		text = ' ' + text;
 		var val = el.value, endIndex, startIndex, range;
 		if (typeof el.selectionStart != 'undefined' && typeof el.selectionEnd != 'undefined') {
@@ -134,18 +134,6 @@
 			range.text = text;
 			range.select();
 		}
-	};
-
-	util.extend = function(a, b) {
-		if (typeof a === 'undefined' || !a) { a = {}; }
-		if (typeof b === 'object') {
-			for (var key in b) {
-				if (b.hasOwnProperty(key)) {
-					a[key] = b[key];
-				}
-			}
-		}
-		return a;
 	};
 
 	util.escapeRegex = function(str) {
@@ -194,42 +182,13 @@
 	};
 
 	EmojiArea.createIcon = function(group, emoji) {
-		var filename = $.emojiarea.icons[group]['icons'][emoji];
+		var filename = $.emojiarea.icons[group].icons[emoji];
 		var path = $.emojiarea.path || '';
 		if (path.length && path.charAt(path.length - 1) !== '/') {
 			path += '/';
 		}
 		return '<img src="' + path + filename + '" alt="' + util.htmlEntities(emoji) + '">';
 	};
-
-	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	/**
-	 * Editor (plain-text)
-	 *
-	 * @constructor
-	 * @param {object} $textarea
-	 * @param {object} options
-	 */
-
-	var EmojiArea_Plain = function($textarea, options) {
-		this.options = options;
-		this.$textarea = $textarea;
-		this.$editor = $textarea;
-		this.setup();
-	};
-
-	EmojiArea_Plain.prototype.insert = function(group, emoji) {
-		if (!$.emojiarea.icons[group]['icons'].hasOwnProperty(emoji)) return;
-		util.insertAtCursor(emoji, this.$textarea[0]);
-		this.$textarea.trigger('change');
-	};
-
-	EmojiArea_Plain.prototype.val = function() {
-		return this.$textarea.val();
-	};
-
-	util.extend(EmojiArea_Plain.prototype, EmojiArea.prototype);
 
 	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -256,8 +215,8 @@
 		var html = this.$editor.text();
 		var emojis = $.emojiarea.icons;
 		for (var group in emojis) {
-			for (var key in emojis[group]['icons']) {
-				if (emojis[group]['icons'].hasOwnProperty(key)) {
+			for (var key in emojis[group].icons) {
+				if (emojis[group].icons.hasOwnProperty(key)) {
 					html = html.replace(new RegExp(util.escapeRegex(key), 'g'), EmojiArea.createIcon(group, key));
 				}
 			}
@@ -330,6 +289,7 @@
 		};
 
 		var children = this.$editor[0].childNodes;
+        console.log(children);
 		for (var i = 0; i < children.length; i++) {
 			sanitizeNode(children[i]);
 		}
@@ -339,7 +299,7 @@
 		return lines.join('\n');
 	};
 
-	util.extend(EmojiArea_WYSIWYG.prototype, EmojiArea.prototype);
+	$.extend(EmojiArea_WYSIWYG.prototype, EmojiArea.prototype);
 
 	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -412,10 +372,10 @@
 		}
 		groups.push('<ul class="group-selector">');
 		for (var group in options) {
-		groups.push('<a href="#group_' + group + '" class="tab_switch"><li>' + options[group]['name'] + '</li></a>');
+		groups.push('<a href="#group_' + group + '" class="tab_switch"><li>' + options[group].name + '</li></a>');
 		html.push('<div class="select_group" group="' + group + '" id="group_' + group + '">');
-			for (var key in options[group]['icons']) {
-				if (options[group]['icons'].hasOwnProperty(key)) {
+			for (var key in options[group].icons) {
+				if (options[group].icons.hasOwnProperty(key)) {
 					var filename = options[key];
 					html.push('<a href="javascript:void(0)" title="' + util.htmlEntities(key) + '">' + EmojiArea.createIcon(group, key) + '<span class="label">' + util.htmlEntities(key) + '</span></a>');
 				}
@@ -426,7 +386,7 @@
 		this.$items.html(html.join(''));
 		this.$menu.prepend(groups.join(''));
 		this.$menu.find('.tab_switch').each(function(i) {
-			if (i != 0) {
+			if (i !== 0) {
 				var select = $(this).attr('href');
 				$(select).hide();
 			} else {
