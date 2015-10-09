@@ -1,5 +1,5 @@
-$.emojiarea.path = '../packs/basic/images';
-$.emojiarea.icons = [{"name" : "<i class='icon-smile'></i>", "icons" : {':bowtie:' : 'bowtie.png',
+emojiareaOptions.path = '../packs/basic/images';
+emojiareaOptions.icons = [{"name" : "<i class='icon-smile'></i>", "icons" : {':bowtie:' : 'bowtie.png',
 ':smile:' : 'smile.png',
 ':laughing:' : 'laughing.png',
 ':blush:' : 'blush.png',
