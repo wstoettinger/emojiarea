@@ -8,7 +8,7 @@
 		<meta name="viewport" content="width=device-width">
 		<link rel="stylesheet" href="../jquery.emojiarea.css">
 		<link rel="stylesheet" href="stylesheet.css">
-		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+		<!--<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>-->
 		<script src="../jquery.emojiarea.js"></script>
 		<script src="../packs/basic/emojis.js"></script>
 		<link rel="stylesheet" href="fontello/css/fontello.css">
@@ -18,20 +18,29 @@
 		
 		<div class="example">
 			<h2>WYSIWYG</h2>
-			<form><textarea rows="5" class="emojis-wysiwyg">Hello :neckbeard: :smile: <b>test</b></textarea></form>
+			<form><textarea rows="5" class="emojis-wysiwyg">:+1:Hello :neckbeard: :smile: Bendik</textarea></form>
 			<h3>Value:</h3>
 			<div class="value"><pre id="emojis-wysiwyg-value"></pre></div>
 		</div>
 		
 		<script>
-        EmojiArea.expose($);
-		var $wysiwyg = $('.emojis-wysiwyg').emojiarea({wysiwyg: true});
-		var $wysiwyg_value = $('#emojis-wysiwyg-value');
+        var textarea = document.querySelector('.emojis-wysiwyg');
+        var wysiwyg = new EmojiArea(textarea, {wysiwyg: true});
+        var wysiwygValue = document.querySelector('#emojis-wysiwyg-value');
+
+        wysiwyg.editor.addEventListener('input', function() {
+            wysiwygValue.innerText = wysiwyg.val();
+        });
+
+
+        var event = document.createEvent('HTMLEvents');
+        event.initEvent('input', true, false);
+        wysiwyg.editor.dispatchEvent(event);
 		
-		$wysiwyg.on('change', function() {
-			$wysiwyg_value.text($(this).val());
-		});
-		$wysiwyg.trigger('change');
+		// $wysiwyg.on('change', function() {
+		// 	$wysiwyg_value.text($(this).val());
+		// });
+		//$wysiwyg.trigger('change');
 		</script>
 	</body>
 </html>

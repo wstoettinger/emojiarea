@@ -134,6 +134,16 @@
         return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     };
 
+    util.addEventListener = function(node, events, callback) {
+        if (events.constructor !== 'Array') {
+            events = [events];
+        }
+
+        events.forEach(function(event) {
+            node.addEventListener(event, callback);
+        });
+    };
+
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     window.emojiareaOptions = {
@@ -146,6 +156,33 @@
         }
     };
 
+    function parseText(html) {
+        var parts = [];
+
+        var regexp = /:[a-z0-9-_+]+:/;
+
+        while (true) {
+            var match = regexp.exec(html);
+            if (!match)
+                break;
+
+            var emoji = EmojiArea.findIcon(match[0]);
+            if (!emoji)
+                continue;
+
+            var index = match.index;
+            parts.push(document.createTextNode(html.substr(0, index)));
+            parts.push(emoji);
+            html = html.substr(index + match[0].length);
+        }
+
+        if (html !== '') {
+            parts.push(document.createTextNode(html));
+        }
+
+        return parts;
+    }
+
     /**
      * Editor (rich)
      *
@@ -154,34 +191,39 @@
      * @param {object} options
      */
 
-    var EmojiArea = function($textarea, options) {
+    var EmojiArea = function(textarea, options) {
         var self = this;
 
         this.options = options;
-        this.$textarea = $textarea;
-        this.$editor = $('<div>').addClass('emoji-wysiwyg-editor');
-        this.$editor.text($textarea.val());
-        this.$editor.attr({contenteditable: 'true'});
-        this.$editor.on('blur keyup paste', function() { return self.onChange.apply(self, arguments); });
-        this.$editor.on('mousedown focus', function() { document.execCommand('enableObjectResizing', false, false); });
-        this.$editor.on('blur', function() { document.execCommand('enableObjectResizing', true, true); });
+        this.textarea = textarea;
 
-        var html = this.$editor.text();
-        var emojis = emojiareaOptions.icons;
-        for (var group in emojis) {
-            for (var key in emojis[group].icons) {
-                if (emojis[group].icons.hasOwnProperty(key)) {
-                    html = html.replace(new RegExp(util.escapeRegex(key), 'g'), EmojiArea.createIcon(group, key));
-                }
-            }
-        }
-        this.$editor.html(html);
+        var editor = document.createElement('div');
+        editor.classList.add('emoji-wysiwyg-editor');
+        editor.innerText =  textarea.innerText;
+        editor.setAttribute('contentEditable', true);
 
-        $textarea.hide().after(this.$editor);
+        var onChange = function() { return self.onChange.apply(self,arguments); };
+        var enableObjectResizing = function() { document.execCommand('enableObjectResizing', false, false); };
+        var disableObjectResizing = function() { document.execCommand('enableObjectResizing', true, true); };
+
+        util.addEventListener(editor, ['blur', 'keyup', 'paste'], onChange);
+        util.addEventListener(editor, ['mousedown', 'focus'], enableObjectResizing);
+        util.addEventListener(editor, 'blur', disableObjectResizing);
+
+        this.editor = editor;
+
+        var html = parseText(this.textarea.innerHTML);
+        console.log(html);
+        html.forEach(function(node) {
+            self.editor.appendChild(node);
+        });
+        this.textarea.style.display = 'none';
+
+        textarea.parentNode.insertBefore(editor, textarea.nextSibling);
 
         this.setup();
 
-        this.$button.on('mousedown', function() {
+        util.addEventListener(this.button, 'mousedown', function() {
             if (self.hasFocus) {
                 self.selection = util.saveSelection();
             }
@@ -192,8 +234,8 @@
         $.fn.emojiarea = function(options) {
             options = $.extend({}, emojiareaOptions.defaults, options);
             return this.each(function() {
-                var $textarea = $(this);
-                new EmojiArea($textarea, options);
+                var textarea = this;
+                new EmojiArea(textarea, options);
             });
         };
     };
@@ -201,34 +243,33 @@
     EmojiArea.prototype.setup = function() {
         var self = this;
 
-        this.$editor.on('focus', function() { self.hasFocus = true; });
-        this.$editor.on('blur', function() { self.hasFocus = false; });
+        util.addEventListener(this.editor, 'focus', function() { self.hasFocus = true; });
+        util.addEventListener(this.editor, 'blur', function() { self.hasFocus = false; });
 
         this.setupButton();
     };
 
     EmojiArea.prototype.setupButton = function() {
         var self = this;
-        var $button;
+        var button;
 
         if (this.options.button) {
-            $button = $(this.options.button);
+            button = this.options.button;
         } else if (this.options.button !== false) {
-            $button = $('<a href="javascript:void(0)">');
-            $button.html(this.options.buttonLabel);
-            $button.addClass('emoji-button');
-            $button.attr({title: this.options.buttonLabel});
-            this.$editor[this.options.buttonPosition]($button);
+            button = document.createElement('a');
+            button.href = 'javascript:void(0)';
+            button.innerHTML = this.options.buttonLabel;
+            button.classList.add('emoji-button');
         } else {
-            $button = $('');
+            button = '';
         }
 
-        $button.on('click', function(e) {
-            EmojiMenu.show(self);
+        util.addEventListener(button, 'click', function(e) {
+            EmojuMenu.show(self);
             e.stopPropagation();
         });
 
-        this.$button = $button;
+        this.button = button;
     };
 
     EmojiArea.createIcon = function(group, emoji) {
@@ -237,25 +278,55 @@
         if (path.length && path.charAt(path.length - 1) !== '/') {
             path += '/';
         }
-        return '<img src="' + path + filename + '" alt="' + util.htmlEntities(emoji) + '">';
+
+        var img = document.createElement('img');
+        img.src = path + filename;
+        img.alt = util.htmlEntities(emoji);
+        return img;
+    };
+
+    EmojiArea.findIcon = function(identifier) {
+        var emojis = emojiareaOptions.icons;
+        for (var group in emojis) {
+            for (var key in emojis[group].icons) {
+                if (emojis[group].icons.hasOwnProperty(key)) {
+                    if (key === identifier) {
+                        var filename = emojiareaOptions.icons[group].icons[key];
+                        var path = emojiareaOptions.path || '';
+                        if (path.length && path.charAt(path.length - 1) !== '/' ) {
+                            path += '/';
+                        }
+
+                        var img = document.createElement('img');
+                        img.src = path + filename;
+                        img.alt = util.htmlEntities(key);
+                        return img;
+                    }
+                }
+            }
+        }
     };
 
     EmojiArea.prototype.onChange = function() {
-        this.$textarea.val(this.val()).trigger('change');
+        this.textarea.innerText = this.val();
+        var event = document.createEvent('HTMLEvents');
+        event.initEvent('change', true, false);
+        this.textarea.dispatchEvent(event);
     };
 
     EmojiArea.prototype.insert = function(group, emoji) {
         var content;
-        var $img = $(EmojiArea.createIcon(group, emoji));
-        if ($img[0].attachEvent) {
-            $img[0].attachEvent('onresizestart', function(e) { e.returnValue = false; }, false);
+        var img = EmojiArea.createIcon(group, emoji);
+        if (img.attachEvent) {
+            img.attachEvent('onresizestart', function(e) { e.returnValue = false; }, false);
         }
-
-        this.$editor.trigger('focus');
+        var event = document.createEvent('HTMLEvents');
+        event.initEvent('focus', true, false);
+        this.editor.dispatchEvent(event);
         if (this.selection) {
             util.restoreSelection(this.selection);
         }
-        try { util.replaceSelection($img[0]); } catch (e) {}
+        try { util.replaceSelection(img); } catch (e) {}
         this.onChange();
     };
 
@@ -294,8 +365,7 @@
             }
         };
 
-        var children = this.$editor[0].childNodes;
-        console.log(children);
+        var children = this.editor.childNodes;
         for (var i = 0; i < children.length; i++) {
             sanitizeNode(children[i]);
         }
@@ -315,38 +385,43 @@
      */
     var EmojiMenu = function() {
         var self = this;
-        var $body = $(document.body);
-        var $window = $(window);
+        var body = document.body;
+        var window = window;
 
         this.visible = false;
         this.emojiarea = null;
-        this.$menu = $('<div>');
-        this.$menu.addClass('emoji-menu');
-        this.$menu.hide();
-        this.$items = $('<div>').appendTo(this.$menu);
+        this.menu = document.createElement('div');
+        this.menu.classList.add('emoji-menu');
+        this.menu.style.display = 'none';
+        this.items = document.createElement('div');
+        this.menu.innerHTML = this.items;
 
-        $body.append(this.$menu);
+        body.appendChild(this.menu);
 
-        $body.on('keydown', function(e) {
+        util.addEventListener(body, 'keydown', function(e) {
             if (e.keyCode === KEY_ESC || e.keyCode === KEY_TAB) {
                 self.hide();
             }
         });
 
-        $body.on('mouseup', function() {
+        util.addEventListener(body, 'mouseup', function() {
             self.hide();
         });
 
-        $window.on('resize', function() {
-            if (self.visible) self.reposition();
+        util.addEventListener(window, 'resize', function() {
+            if (self.visible) {
+                console.log('resize');
+                //self.reposition();
+            }
         });
 
-        this.$menu.on('mouseup', 'a', function(e) {
+        util.addEventListener(this.menu, 'mouseup', function(e) {
             e.stopPropagation();
             return false;
         });
 
-        this.$menu.on('click', 'a', function(e) {
+        // TODO: FIX ME
+        /*this.$menu.on('click', 'a', function(e) {
             var emoji = $('.label', $(this)).text();
             var group = $('.label', $(this)).parent().parent().attr('group');
             if(group && emoji !== ''){
@@ -356,7 +431,7 @@
                 e.stopPropagation();
                 return false;
             }
-        });
+        });*/
 
         this.load();
     };
@@ -374,58 +449,75 @@
         if (path.length && path.charAt(path.length - 1) !== '/') {
             path += '/';
         }
-        groups.push('<ul class="group-selector">');
+        var ul = document.createElement('ul');
+        ul.classList.add('group-selector');
         for (var group in options) {
-        groups.push('<a href="#group_' + group + '" class="tab_switch"><li>' + options[group].name + '</li></a>');
-        html.push('<div class="select_group" group="' + group + '" id="group_' + group + '">');
+            var a = document.createElement('a');
+            a.href = '#group_' + group;
+            a.classList.add('tab_switch');
+            if (group === '<i class="icon-smile"></i>') {
+                a.classList.add('active');
+            } else {
+                a.style.display = 'none';
+            }
+            var li = document.createElement('li');
+            li.innerText = options[group].name;
+            a.appendChild(li);
+            ul.appendChild(a);
+            var groupElement = document.createElement('div');
+            groupElement.classList.add('select_group');
+            groupElement.setAttribute('group', group);
+            groupElement.id = 'group_' + group;
+
+            var onClick = function(ev) {
+                var activeTabSwitch = document.querySelector('.tab_switch.active');
+                activeTabSwitch.classList.remove('active');
+                a.classList.add('active');
+                var activeGroup = document.querySelector('.select_group.active');
+                activeGroup.classList.remove('active');
+                groupElement.classList.add('active');
+            };
+            util.addEventListener(a, 'click', onClick);
+
+
             for (var key in options[group].icons) {
                 if (options[group].icons.hasOwnProperty(key)) {
                     var filename = options[key];
-                    html.push('<a href="javascript:void(0)" title="' + util.htmlEntities(key) + '">' + EmojiArea.createIcon(group, key) + '<span class="label">' + util.htmlEntities(key) + '</span></a>');
+                    var emoji = document.createElement('a');
+                    emoji.href = 'javascript:void(0)';
+                    emoji.title = util.htmlEntities(key);
+                    emoji.innerHTML = EmojiArea.createIcon(group, key);
+                    groupElement.appendChild(emoji);
+                    // TODO: Add span label
+                    //html.push('<a href="javascript:void(0)" title="' + util.htmlEntities(key) + '">' + EmojiArea.createIcon(group, key) + '<span class="label">' + util.htmlEntities(key) + '</span></a>');
                 }
             }
-        html.push('</div>');
+            this.items.appendChild(groupElement);
         }
-        groups.push('</ul>');
-        this.$items.html(html.join(''));
-        this.$menu.prepend(groups.join(''));
-        this.$menu.find('.tab_switch').each(function(i) {
-            if (i !== 0) {
-                var select = $(this).attr('href');
-                $(select).hide();
-            } else {
-                $(this).addClass('active');
-            }
-            $(this).click(function() {
-                $(this).addClass('active');
-                $(this).siblings().removeClass('active');
-                $('.select_group').hide();
-                var select = $(this).attr('href');
-                $(select).show();
-            });
-        });
+        this.menu.appendChild(ul);
     };
 
-    EmojiMenu.prototype.reposition = function() {
-        var $button = this.emojiarea.$button;
-        var offset = $button.offset();
-        offset.top += $button.outerHeight();
+    // TODO: FIX ME
+    /*EmojiMenu.prototype.reposition = function() {
+        var button = this.emojiarea.button;
+        var offset = button.offset();
+        offset.top += button.outerHeight();
         offset.left += Math.round($button.outerWidth() / 2);
 
         this.$menu.css({
             top: offset.top,
             left: offset.left
         });
-    };
+    };*/
 
     EmojiMenu.prototype.hide = function(callback) {
         if (this.emojiarea) {
             this.emojiarea.menu = null;
-            this.emojiarea.$button.removeClass('on');
+            this.emojiarea.button.classList.remove('on');
             this.emojiarea = null;
         }
         this.visible = false;
-        this.$menu.hide();
+        this.menu.style.display = 'none';
     };
 
     EmojiMenu.prototype.show = function(emojiarea) {
@@ -433,8 +525,8 @@
         this.emojiarea = emojiarea;
         this.emojiarea.menu = this;
 
-        this.reposition();
-        this.$menu.show();
+        //this.reposition();
+        this.menu.style.display = 'block';
         this.visible = true;
     };
 
