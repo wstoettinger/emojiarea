@@ -20,5 +20,8 @@
     "bower_components",
     "test",
     "tests"
-  ]
+  ],
+  "dependencies": {
+    "DOMPurify": "dompurify#~0.7.1"
+  }
 }
