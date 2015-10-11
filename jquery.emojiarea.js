@@ -37,7 +37,6 @@
     var util = {};
 
     util.restoreSelection = (function() {
-        console.log('restoreSelection');
         if (window.getSelection) {
             return function(savedSelection) {
                 var sel = window.getSelection();
@@ -56,7 +55,6 @@
     })();
 
     util.saveSelection = (function() {
-        console.log('saveSelection');
         if (window.getSelection) {
             return function() {
                 var sel = window.getSelection(), ranges = [];
@@ -76,7 +74,6 @@
     })();
 
     util.replaceSelection = (function() {
-        console.log('replaceSelection');
         if (window.getSelection) {
             return function(content) {
                 var range, sel = window.getSelection();
@@ -110,7 +107,6 @@
     })();
 
     util.insertAtCursor = function(text, el) {
-        console.log('insertAtCursor');
         text = ' ' + text;
         var val = el.value, endIndex, startIndex, range;
         if (typeof el.selectionStart != 'undefined' && typeof el.selectionEnd != 'undefined') {
@@ -213,7 +209,6 @@
         this.editor = editor;
 
         var html = parseText(this.textarea.innerHTML);
-        console.log(html);
         html.forEach(function(node) {
             self.editor.appendChild(node);
         });
@@ -410,7 +405,6 @@
 
         util.addEventListener(window, 'resize', function() {
             if (self.visible) {
-                console.log('resize');
                 //self.reposition();
             }
         });
