@@ -226,6 +226,7 @@
 
         var html = parseText(this.textarea.innerHTML);
         util.appendChildren(this.editor, html);
+        this.lastValue = this.val();
         this.textarea.style.display = 'none';
 
         textarea.parentNode.insertBefore(editor, textarea.nextSibling);
@@ -316,8 +317,50 @@
         }
     };
 
+    function numberInContainer(node) {
+        var container = node.parentNode;
+        for (var i = 0; i < container.childNodes.length; i++) {
+            if (container.childNodes[i] === node)
+                return i;
+        }
+
+        return -1;
+    }
+
+    function internalRange(range) {
+        return {
+            commonAncestorContainerN: numberInContainer(range.commonAncestorContainer),
+            endContainerN: numberInContainer(range.endContainer),
+            endOffset: range.endOffset,
+            startContainerN: numberInContainer(range.startContainer),
+            startOffset: range.startOffset
+        };
+    }
+
+    function makeRange(internalRange, container) {
+        var range = document.createRange();
+        var startNode = container.childNodes[internalRange.startContainerN];
+        var endNode = container.childNodes[internalRange.endContainerN];
+        range.setEnd(startNode, internalRange.endOffset);
+        range.setStart(endNode, internalRange.startOffset);
+        return range;
+    }
+
     EmojiArea.prototype.onChange = function() {
-        this.textarea.innerText = this.val();
+        var value = this.val();
+        if (value === this.lastValue) {
+            return;
+        }
+
+        var selection = util.saveSelection();
+        var range = internalRange(selection[0]);
+        console.log(range);
+        this.textarea.innerText = value;
+        var html = parseText(value);
+        util.removeChildren(this.editor);
+        util.appendChildren(this.editor, html);
+        var newRange = makeRange(range, this.editor);
+        util.restoreSelection([newRange]);
         util.dispatchEvent(this.textarea, 'change');
     };
 
