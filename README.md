@@ -1,19 +1,26 @@
-*NOTICE* This extends the [original plugin](https://github.com/diy/jquery-emojiarea) by groups. (See screenshot at dropdown menu)
+#EmojiArea
 
-#### About this extension
-This was originally created for my project [*The Msngr*](https://github.com/GittiHab/TheMsngr), which is now open source too. I am always happy about an attribution to me and my website, e.g. [\<a href="https://pius-ladenburger.de">Pius Ladenburger\</a>](https://pius-ladenburger.de).
+A small plugin for turning textareas into ones that support emojis. No external dependencies. Uses `contenteditable` for rendering. Bundles twitters twemoji set, but you are of course free to roll your own.
 
-I hope this helps you and makes your day easier.
-
-#.emojiarea()
-
-A small **6kb** [jQuery](http://jquery.com/) plugin for turning regular textareas into ones that support emojis, WYSIWYG style! Set up a list of available emojis, call `$('textarea').emojiarea()` and you're done (basically). There's a plain-text fallback, so if the browser doesn't support [contentEditable](http://caniuse.com/#search=contenteditable), it will degrade gracefully—the user will still be able to use the dropdown menu of emojis.
-
+## What it looks like
 ![Screenshot](http://i.imgur.com/C4Z8F.gif)
 
-```html
-<textarea>Hello :smile:</textarea>
-<script type="text/javascript">$('textarea').emojiarea();</script>
+## Usage
+
+Without jQuery
+```javascript
+var textarea = document.querySelector('.my-textarea');
+var emojiArea = new EmojiArea(textarea, options);
+```
+
+With jQuery
+```javascript
+EmojiArea.expose($); // registers EmojiArea as a jQuery plugin
+$('.my-textarea').emojiarea(options);
+
+// or
+
+var emojiArea = new EmojiArea($('.my-textarea'), options);
 ```
 
 ## Configuration
@@ -58,16 +65,6 @@ $.emojiarea.icons = {
 };
 ```
 
-### Defaults
-
-If you wish to set the defaults for `$().emojiarea()`, extend `$.emojiarea.defaults` like so:
-
-```javascript
-$.extend($.emojiarea.defaults, {
-    buttonPosition: 'before'
-});
-```
-
 For a basic set of emojis, see "packs/basic". 
 
 ## CSS / Skinning
@@ -81,12 +78,6 @@ Basically, you'll want to adjust the following styles:
 .emoji-menu > div /* the dropdown menu with options */
 .emoji-wysiwyg-editor img /* the emoji images in the editor */
 ```
-
-## Footnotes
-
-* Huge props to [Tim Down](http://stackoverflow.com/users/96100/tim-down) for the many insightful answers on Stack Overflow having to deal with cross-browser selection handling.
-* If you have a really rad set of emojis and would like to share, please fork this, add them to "packs/", and submit a pull request!
-* For a giant list of emojis (used by Github, Basecamp, et al), see ["Emoji cheat sheet"](http://www.emoji-cheat-sheet.com/).
 
 ## License
 
