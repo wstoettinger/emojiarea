@@ -139,6 +139,12 @@
         });
     };
 
+    util.dispatchEvent = function(node, type) {
+        var event = document.createEvent('HTMLEvents');
+        event.initEvent(type, true, false);
+        node.dispatchEvent(event);
+    };
+
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     window.emojiareaOptions = {
@@ -303,9 +309,7 @@
 
     EmojiArea.prototype.onChange = function() {
         this.textarea.innerText = this.val();
-        var event = document.createEvent('HTMLEvents');
-        event.initEvent('change', true, false);
-        this.textarea.dispatchEvent(event);
+        util.dispatchEvent(this.textarea, 'change');
     };
 
     EmojiArea.prototype.insert = function(group, emoji) {
@@ -314,9 +318,7 @@
         if (img.attachEvent) {
             img.attachEvent('onresizestart', function(e) { e.returnValue = false; }, false);
         }
-        var event = document.createEvent('HTMLEvents');
-        event.initEvent('focus', true, false);
-        this.editor.dispatchEvent(event);
+        util.dispatchEvent(this.editor, 'focus');
         if (this.selection) {
             util.restoreSelection(this.selection);
         }
