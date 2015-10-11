@@ -145,6 +145,17 @@
         node.dispatchEvent(event);
     };
 
+    util.removeChildren = function(node) {
+        while (node.firstChild)
+            node.removeChild(node.firstChild);
+    };
+
+    util.appendChildren = function(node, children) {
+        children.forEach(function(child) {
+            node.appendChild(child);
+        });
+    };
+
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     window.emojiareaOptions = {
