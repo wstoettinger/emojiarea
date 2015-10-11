@@ -131,9 +131,8 @@
     };
 
     util.addEventListener = function(node, events, callback) {
-        if (events.constructor !== 'Array') {
+        if (events.constructor !== Array)
             events = [events];
-        }
 
         events.forEach(function(event) {
             node.addEventListener(event, callback);
