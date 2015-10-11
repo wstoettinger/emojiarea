@@ -225,9 +225,7 @@
         this.editor = editor;
 
         var html = parseText(this.textarea.innerHTML);
-        html.forEach(function(node) {
-            self.editor.appendChild(node);
-        });
+        util.appendChildren(this.editor, html);
         this.textarea.style.display = 'none';
 
         textarea.parentNode.insertBefore(editor, textarea.nextSibling);
