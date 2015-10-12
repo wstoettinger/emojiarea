@@ -391,7 +391,7 @@
         var endNode = html[endContainer];
         if (html.length > oldHtml.length) {
             // console.log(oldHtml);
-            console.log('We have new elements', oldHtml[startContainer]);
+            console.log('We have new elements', startContainer);
             var offsetFromEnd = oldHtml[startContainer].textContent.length - startOffset;
             var indexFromEnd = oldHtml.length - startContainer;
             startContainer = html.length - indexFromEnd;
