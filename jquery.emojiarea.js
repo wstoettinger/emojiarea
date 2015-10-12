@@ -329,18 +329,17 @@
 
     function internalRange(range) {
         return {
-            commonAncestorContainerN: numberInContainer(range.commonAncestorContainer),
-            endContainerN: numberInContainer(range.endContainer),
+            endContainer: numberInContainer(range.endContainer),
             endOffset: range.endOffset,
-            startContainerN: numberInContainer(range.startContainer),
+            startContainer: numberInContainer(range.startContainer),
             startOffset: range.startOffset
         };
     }
 
     function makeRange(internalRange, container) {
         var range = document.createRange();
-        var startNode = container.childNodes[internalRange.startContainerN];
-        var endNode = container.childNodes[internalRange.endContainerN];
+        var startNode = container.childNodes[internalRange.startContainer];
+        var endNode = container.childNodes[internalRange.endContainer];
         range.setEnd(startNode, internalRange.endOffset);
         range.setStart(endNode, internalRange.startOffset);
         return range;
@@ -352,6 +351,7 @@
             return;
         }
 
+        this.lastValue = value;
         var selection = util.saveSelection();
         var range = internalRange(selection[0]);
         console.log(range);
