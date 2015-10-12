@@ -156,18 +156,23 @@
         });
     };
 
-    util.childNumber = function(child, container) {
-        if (child === container)
-            return container.childNodes.length - 1;
-
-        for (var i = 0; i < container.childNodes.length; i++) {
-            if (container.childNodes[i] === child)
+    util.childNumber = function(child, childNodes) {
+        for (var i = 0; i < childNodes.length; i++) {
+            if (childNodes[i] === child)
                 return i;
         }
 
-        console.warn('Could not find child in container', child, container);
+        // We are not in a child node, but in the editor itself. We return -1 and use offsets instead
 
-        return 0;
+        return -1;
+    };
+
+    util.isTextNode = function(node) {
+        return node instanceof Text;
+    };
+
+    util.isImageNode = function(node) {
+        return node instanceof HTMLImageElement;
     };
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -232,11 +237,13 @@
         editor.innerText =  textarea.innerText;
         editor.setAttribute('contentEditable', true);
 
-        var onChange = function() { return self.onChange.apply(self,arguments); };
+        var onChange = function() { return self.onChange.apply(self, arguments); };
+        // var onPaste = function() { return self.onPaste.apply(self, arguments); };
         var enableObjectResizing = function() { document.execCommand('enableObjectResizing', false, false); };
         var disableObjectResizing = function() { document.execCommand('enableObjectResizing', true, true); };
 
-        util.addEventListener(editor, ['keyup', 'paste'], onChange);
+        util.addEventListener(editor, 'input', onChange);
+        // util.addEventListener(editor, 'paste', onPaste);
         util.addEventListener(editor, ['mousedown', 'focus'], enableObjectResizing);
         util.addEventListener(editor, 'blur', disableObjectResizing);
 
@@ -336,11 +343,38 @@
     };
 
     function internalRange(range, container) {
+        var nodes = Array.prototype.slice.call(container.childNodes);
+        // We get an image as the last node if the last text is a single character, and we backspace it. We need to fix this
+        if (util.isImageNode(nodes[nodes.length - 1])) {
+            console.log('pushing text');
+            nodes.push(document.createTextNode(''));
+        }
+        if (util.isTextNode(nodes[0]) && util.isTextNode(nodes[1])) {
+            if (nodes[0].textContent === '')
+                nodes = nodes.slice(1);
+        }
+        console.log('original range:',range);
+        var startContainer = util.childNumber(range.startContainer, nodes);
+        console.log('startContainer', startContainer);
+        var endContainer = util.childNumber(range.endContainer, nodes);
+        var startOffset;
+        var endOffset;
+        if (startContainer === -1) {
+            console.log('hmm');
+            startContainer = range.startOffset;
+            endContainer = range.endOffset;
+            startOffset = 0;
+            endOffset = 0;
+        } else {
+            startOffset = nodes[startContainer].textContent.length < range.startOffset ? 0 : range.startOffset;
+            endOffset = nodes[endContainer].textContent.length < range.endOffset ? startOffset : range.endOffset;
+        }
+
         return {
-            endContainer: util.childNumber(range.endContainer, container),
-            endOffset: range.endOffset,
-            startContainer: util.childNumber(range.startContainer, container),
-            startOffset: range.startOffset
+            endContainer: endContainer,
+            endOffset: endOffset,
+            startContainer: startContainer,
+            startOffset: startOffset
         };
     }
 
@@ -350,14 +384,34 @@
         var startOffset = internalRange.startOffset;
         var endContainer = internalRange.endContainer;
         var endOffset = internalRange.endOffset;
-        if (oldHtml.length < html.length) {
-            startContainer += 2;
-            endContainer += 2;
-            startOffset = 0;
-            endOffset = 0;
-        }
         var startNode = html[startContainer];
         var endNode = html[endContainer];
+        if (html.length > oldHtml.length) {
+            // console.log(oldHtml);
+            console.log('We have new elements', oldHtml[startContainer]);
+            var offsetFromEnd = oldHtml[startContainer].textContent.length - startOffset;
+            var indexFromEnd = oldHtml.length - startContainer;
+            startContainer = html.length - indexFromEnd;
+            endContainer = html.length - indexFromEnd;
+
+            startNode = html[startContainer];
+            endNode = html[endContainer];
+
+            var text = startNode.textContent;
+            var offset = 0;
+            if (text.length > 0) {
+                offset = text.length - offsetFromEnd;
+                if (offset < 0)
+                    offset = 0;
+                if (offset >= text.length)
+                    offset = text.length - 1;
+            }
+            console.log(offset);
+            startOffset = offset;
+            endOffset = offset;
+        }
+        //console.log(startContainer, startNode);
+        console.log(internalRange);
         range.setStart(startNode, startOffset);
         range.setEnd(endNode, endOffset);
 
@@ -365,29 +419,46 @@
     }
 
     EmojiArea.prototype.onChange = function() {
+        console.log('onChange:', this.val());
         var textValue = this.val();
-        console.log('equals:', textValue === this.lastTextValue);
         if (textValue === this.lastTextValue) {
             return;
         }
 
-        var selection = util.saveSelection();
+        if (textValue.length === 0) {
+            this.lastTextValue = textValue;
+            return;
+        }
+
+        var selection = /*this.selection ? this.selection :*/ util.saveSelection();
         var range = internalRange(selection[0], this.editor);
-        console.log(range);
+        //console.log(range);
         this.textarea.innerText = textValue;
 
         var oldHtml = parseText(this.lastTextValue);
         var html = parseText(textValue);
+        if (html.length === 1 && util.isTextNode(html[0])) {
+            this.lastTextValue = textValue;
+            return;
+        }
+
         util.dispatchEvent(this.editor, 'blur');
         util.removeChildren(this.editor);
         util.appendChildren(this.editor, html);
-        console.log(oldHtml);
-        console.log(html);
+        // console.log(oldHtml);
+        // console.log(html);
         var newRange = makeRange(range, oldHtml, html);
         util.restoreSelection([newRange]);
         util.dispatchEvent(this.textarea, 'change');
         this.lastTextValue = textValue;
     };
+
+    // EmojiArea.prototype.onPaste = function() {
+    //     console.log('onPaste:', this.val());
+
+    //     this.selection = util.saveSelection();
+    //     console.log(internalRange(this.selection[0], this.editor));
+    // };
 
     EmojiArea.prototype.insert = function(group, emoji) {
         var content;
