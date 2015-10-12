@@ -214,10 +214,10 @@
             parts.push(document.createTextNode(html));
         }
 
-        if (parts[parts.length - 1] instanceof HTMLImageElement) {
+        if (util.isImageNode(parts[parts.length - 1])) {
             parts.push(document.createTextNode(''));
         }
-
+        console.log('parseText:', parts);
         return parts;
     }
 
@@ -345,27 +345,56 @@
         }
     };
 
-    function internalRange(range, container) {
-        var nodes = Array.prototype.slice.call(container.childNodes);
+    function fixNodes(nodes) {
+        var fixedNodes = nodes.reduce(function(mem, node) {
+            if (mem.length === 0 && util.isImageNode(node)) {
+                mem.push(document.createTextNode(''));
+            }
+
+            if (mem.length > 0 && util.isTextNode(node) && util.isTextNode(mem[mem.length - 1])) {
+                node = document.createTextNode(mem[mem.length - 1].textContent + node.textContent);
+                mem.pop();
+            }
+
+            if (mem.length > 0 && util.isImageNode(node) && util.isImageNode(mem[mem.length - 1])) {
+                mem.push(document.createTextNode(''));
+            }
+
+            mem.push(node);
+            return mem;
+        }, []);
+        // if (util.isTextNode(fixedNodes[fixedNodes.length - 1])) {
+        //     fixedNodes.push(document.createTextNode(''));
+        // }
+
+        return fixedNodes;
+    }
+
+    function internalRange(range, childNodes) {
         // We get an image as the last node if the last text is a single character, and we backspace it. We need to fix this
-        if (util.isImageNode(nodes[nodes.length - 1])) {
+        console.log('before:', childNodes);
+        var nodes = fixNodes(childNodes);
+        console.log('after:', nodes);
+        var diff = childNodes.length - nodes.length;
+        console.log('diff:', diff);
+        /*if (util.isImageNode(nodes[nodes.length - 1])) {
             console.log('pushing text');
             nodes.push(document.createTextNode(''));
         }
         if (util.isTextNode(nodes[0]) && util.isTextNode(nodes[1])) {
+            console.log('squashing two first text nodes');
             if (nodes[0].textContent === '')
                 nodes = nodes.slice(1);
-        }
-        console.log('original range:',range);
-        var startContainer = util.childNumber(range.startContainer, nodes);
-        console.log('startContainer', startContainer);
-        var endContainer = util.childNumber(range.endContainer, nodes);
+        }*/
+        var startContainer = util.childNumber(range.startContainer + diff, nodes);
+        var endContainer = util.childNumber(range.endContainer + diff, nodes);
         var startOffset;
         var endOffset;
         if (startContainer === -1) {
-            console.log('hmm');
-            startContainer = range.startOffset;
-            endContainer = range.endOffset;
+            console.log('startContainer is -1, using offset instead', childNodes.length, range.startOffset);
+            startContainer = nodes.length - (childNodes.length - (range.startOffset));
+            console.log(startContainer);
+            endContainer = nodes.length - (childNodes.length - (range.endOffset));
             startOffset = 0;
             endOffset = 0;
         } else {
@@ -414,7 +443,6 @@
             endOffset = offset;
         }
         //console.log(startContainer, startNode);
-        console.log(internalRange);
         range.setStart(startNode, startOffset);
         range.setEnd(endNode, endOffset);
 
@@ -433,12 +461,15 @@
             return;
         }
 
-        var selection = /*this.selection ? this.selection :*/ util.saveSelection();
-        var range = internalRange(selection[0], this.editor);
-        //console.log(range);
+        var selection = util.saveSelection();
+        var childNodes = Array.prototype.slice.call(this.editor.childNodes);
+        console.log(selection[0].startContainer,selection[0].endContainer,selection[0].startOffset,selection[0].endOffset);
+        console.log('childNodes:', childNodes);
+        var range = internalRange(selection[0], childNodes);
+        console.log(range);
         this.textarea.innerText = textValue;
 
-        var oldHtml = parseText(this.lastTextValue);
+        var oldHtml = childNodes;// parseText(this.lastTextValue);
         var html = parseText(textValue);
         if (html.length === 1 && util.isTextNode(html[0])) {
             this.lastTextValue = textValue;
@@ -448,8 +479,8 @@
         util.dispatchEvent(this.editor, 'blur');
         util.removeChildren(this.editor);
         util.appendChildren(this.editor, html);
-        // console.log(oldHtml);
-        // console.log(html);
+        console.log(oldHtml);
+        console.log(html);
         var newRange = makeRange(range, oldHtml, html);
         util.restoreSelection([newRange]);
         util.dispatchEvent(this.textarea, 'change');
