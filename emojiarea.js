@@ -190,8 +190,8 @@
     function parseText(html) {
         var parts = [];
 
-        var regexp = /:[a-z0-9-_+]+:/;
-
+        var regexp = /:[a-z0-9-_+]+:/g;
+        var lastIndex = 0;
         while (true) {
             var match = regexp.exec(html);
             if (!match)
@@ -202,10 +202,13 @@
                 continue;
 
             var index = match.index;
-            parts.push(document.createTextNode(html.substr(0, index)));
+            var length = match[0].length;
+            parts.push(document.createTextNode(html.slice(lastIndex, index)));
             parts.push(emoji);
-            html = html.substr(index + match[0].length);
+            lastIndex = index + length;
         }
+
+        html = html.slice(lastIndex);
 
         if (html !== '') {
             parts.push(document.createTextNode(html));
