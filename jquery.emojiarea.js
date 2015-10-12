@@ -156,6 +156,20 @@
         });
     };
 
+    util.childNumber = function(child, container) {
+        if (child === container)
+            return container.childNodes.length - 1;
+
+        for (var i = 0; i < container.childNodes.length; i++) {
+            if (container.childNodes[i] === child)
+                return i;
+        }
+
+        console.warn('Could not find child in container', child, container);
+
+        return 0;
+    };
+
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     window.emojiareaOptions = {
@@ -192,6 +206,10 @@
             parts.push(document.createTextNode(html));
         }
 
+        if (parts[parts.length - 1] instanceof HTMLImageElement) {
+            parts.push(document.createTextNode(''));
+        }
+
         return parts;
     }
 
@@ -218,7 +236,7 @@
         var enableObjectResizing = function() { document.execCommand('enableObjectResizing', false, false); };
         var disableObjectResizing = function() { document.execCommand('enableObjectResizing', true, true); };
 
-        util.addEventListener(editor, ['blur', 'keyup', 'paste'], onChange);
+        util.addEventListener(editor, ['keyup', 'paste'], onChange);
         util.addEventListener(editor, ['mousedown', 'focus'], enableObjectResizing);
         util.addEventListener(editor, 'blur', disableObjectResizing);
 
@@ -226,7 +244,7 @@
 
         var html = parseText(this.textarea.innerHTML);
         util.appendChildren(this.editor, html);
-        this.lastValue = this.val();
+        this.lastTextValue = this.val();
         this.textarea.style.display = 'none';
 
         textarea.parentNode.insertBefore(editor, textarea.nextSibling);
@@ -317,51 +335,58 @@
         }
     };
 
-    function numberInContainer(node) {
-        var container = node.parentNode;
-        for (var i = 0; i < container.childNodes.length; i++) {
-            if (container.childNodes[i] === node)
-                return i;
-        }
-
-        return -1;
-    }
-
-    function internalRange(range) {
+    function internalRange(range, container) {
         return {
-            endContainer: numberInContainer(range.endContainer),
+            endContainer: util.childNumber(range.endContainer, container),
             endOffset: range.endOffset,
-            startContainer: numberInContainer(range.startContainer),
+            startContainer: util.childNumber(range.startContainer, container),
             startOffset: range.startOffset
         };
     }
 
-    function makeRange(internalRange, container) {
+    function makeRange(internalRange, oldHtml, html) {
         var range = document.createRange();
-        var startNode = container.childNodes[internalRange.startContainer];
-        var endNode = container.childNodes[internalRange.endContainer];
-        range.setEnd(startNode, internalRange.endOffset);
-        range.setStart(endNode, internalRange.startOffset);
+        var startContainer = internalRange.startContainer;
+        var startOffset = internalRange.startOffset;
+        var endContainer = internalRange.endContainer;
+        var endOffset = internalRange.endOffset;
+        if (oldHtml.length < html.length) {
+            startContainer += 2;
+            endContainer += 2;
+            startOffset = 0;
+            endOffset = 0;
+        }
+        var startNode = html[startContainer];
+        var endNode = html[endContainer];
+        range.setStart(startNode, startOffset);
+        range.setEnd(endNode, endOffset);
+
         return range;
     }
 
     EmojiArea.prototype.onChange = function() {
-        var value = this.val();
-        if (value === this.lastValue) {
+        var textValue = this.val();
+        console.log('equals:', textValue === this.lastTextValue);
+        if (textValue === this.lastTextValue) {
             return;
         }
 
-        this.lastValue = value;
         var selection = util.saveSelection();
-        var range = internalRange(selection[0]);
+        var range = internalRange(selection[0], this.editor);
         console.log(range);
-        this.textarea.innerText = value;
-        var html = parseText(value);
+        this.textarea.innerText = textValue;
+
+        var oldHtml = parseText(this.lastTextValue);
+        var html = parseText(textValue);
+        util.dispatchEvent(this.editor, 'blur');
         util.removeChildren(this.editor);
         util.appendChildren(this.editor, html);
-        var newRange = makeRange(range, this.editor);
+        console.log(oldHtml);
+        console.log(html);
+        var newRange = makeRange(range, oldHtml, html);
         util.restoreSelection([newRange]);
         util.dispatchEvent(this.textarea, 'change');
+        this.lastTextValue = textValue;
     };
 
     EmojiArea.prototype.insert = function(group, emoji) {
