@@ -16,15 +16,15 @@
 
  (function (root, factory) {
     if (typeof define === 'function' && define.amd) {
-        define(['range'], function (range) {
-            return (root.EmojiArea = factory(range));
+        define(['range', 'dom'], function (range, dom) {
+            return (root.EmojiArea = factory(range, dom));
         });
     } else if (typeof module === 'object' && module.exports) {
-        module.exports = (root.EmojiArea = factory(require('range')));
+        module.exports = (root.EmojiArea = factory(require('range'), require('dom')));
     } else {
-        root.EmojiArea = factory(root.range);
+        root.EmojiArea = factory(root.range, root.dom);
     }
-})(this, function(range) {
+})(this, function(range, dom) {
     'use strict';
 
     var ELEMENT_NODE = 1;
@@ -135,7 +135,15 @@
         return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     };
 
-    util.addEventListener = function(node, events, callback) {
+    util.addEventListener = dom.addEventListener;
+    util.dispatchEvent = dom.dispatchEvent;
+    util.removeChildren = dom.removeChildren;
+    util.appendChildren = dom.appendChildren;
+    util.childNumber = dom.numberInParent;
+    util.isTextNode = dom.isTextNode;
+    util.isImageNode = dom.isImageNode;
+
+    /*util.addEventListener = function(node, events, callback) {
         if (events.constructor !== Array)
             events = [events];
 
@@ -178,7 +186,7 @@
 
     util.isImageNode = function(node) {
         return node instanceof HTMLImageElement;
-    };
+    };*/
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
