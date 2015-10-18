@@ -37,76 +37,6 @@
 
     var util = {};
 
-    /*util.restoreSelection = (function() {
-        if (window.getSelection) {
-            return function(savedSelection) {
-                var sel = window.getSelection();
-                sel.removeAllRanges();
-                for (var i = 0, len = savedSelection.length; i < len; ++i) {
-                    sel.addRange(savedSelection[i]);
-                }
-            };
-        } else if (document.selection && document.selection.createRange) {
-            return function(savedSelection) {
-                if (savedSelection) {
-                    savedSelection.select();
-                }
-            };
-        }
-    })();
-
-    util.saveSelection = (function() {
-        if (window.getSelection) {
-            return function() {
-                var sel = window.getSelection(), ranges = [];
-                if (sel.rangeCount) {
-                    for (var i = 0, len = sel.rangeCount; i < len; ++i) {
-                        ranges.push(sel.getRangeAt(i));
-                    }
-                }
-                return ranges;
-            };
-        } else if (document.selection && document.selection.createRange) {
-            return function() {
-                var sel = document.selection;
-                return (sel.type.toLowerCase() !== 'none') ? sel.createRange() : null;
-            };
-        }
-    })();
-
-    util.replaceSelection = (function() {
-        if (window.getSelection) {
-            return function(content) {
-                var range, sel = window.getSelection();
-                var node = typeof content === 'string' ? document.createTextNode(content) : content;
-                if (sel.getRangeAt && sel.rangeCount) {
-                    range = sel.getRangeAt(0);
-                    range.deleteContents();
-                    range.insertNode(document.createTextNode(' '));
-                    range.insertNode(node);
-                    range.setStart(node, 0);
-
-                    window.setTimeout(function() {
-                        range = document.createRange();
-                        range.setStartAfter(node);
-                        range.collapse(true);
-                        sel.removeAllRanges();
-                        sel.addRange(range);
-                    }, 0);
-                }
-            };
-        } else if (document.selection && document.selection.createRange) {
-            return function(content) {
-                var range = document.selection.createRange();
-                if (typeof content === 'string') {
-                    range.text = content;
-                } else {
-                    range.pasteHTML(content.outerHTML);
-                }
-            };
-        }
-    })();*/
-
     util.restoreSelection = range.restore;
     util.saveSelection = range.get;
     util.replaceSelection = range.replace;
@@ -142,51 +72,6 @@
     util.childNumber = dom.numberInParent;
     util.isTextNode = dom.isTextNode;
     util.isImageNode = dom.isImageNode;
-
-    /*util.addEventListener = function(node, events, callback) {
-        if (events.constructor !== Array)
-            events = [events];
-
-        events.forEach(function(event) {
-            node.addEventListener(event, callback);
-        });
-    };
-
-    util.dispatchEvent = function(node, type) {
-        var event = document.createEvent('HTMLEvents');
-        event.initEvent(type, true, false);
-        node.dispatchEvent(event);
-    };
-
-    util.removeChildren = function(node) {
-        while (node.firstChild)
-            node.removeChild(node.firstChild);
-    };
-
-    util.appendChildren = function(node, children) {
-        children.forEach(function(child) {
-            node.appendChild(child);
-        });
-    };
-
-    util.childNumber = function(child, childNodes) {
-        for (var i = 0; i < childNodes.length; i++) {
-            if (childNodes[i] === child)
-                return i;
-        }
-
-        // We are not in a child node, but in the editor itself. We return -1 and use offsets instead
-
-        return -1;
-    };
-
-    util.isTextNode = function(node) {
-        return node instanceof Text;
-    };
-
-    util.isImageNode = function(node) {
-        return node instanceof HTMLImageElement;
-    };*/
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
