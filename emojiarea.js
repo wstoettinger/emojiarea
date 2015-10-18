@@ -16,15 +16,16 @@
 
  (function (root, factory) {
     if (typeof define === 'function' && define.amd) {
-        define([], function () {
-            return (root.EmojiArea = factory());
+        define(['range'], function (range) {
+            return (root.EmojiArea = factory(range));
         });
     } else if (typeof module === 'object' && module.exports) {
-        module.exports = (root.EmojiArea = factory());
+        module.exports = (root.EmojiArea = factory(require('range')));
     } else {
-        root.EmojiArea = factory();
+        root.EmojiArea = factory(root.range);
     }
-})(this, function() {
+})(this, function(range) {
+    'use strict';
 
     var ELEMENT_NODE = 1;
     var TEXT_NODE = 3;
@@ -36,7 +37,7 @@
 
     var util = {};
 
-    util.restoreSelection = (function() {
+    /*util.restoreSelection = (function() {
         if (window.getSelection) {
             return function(savedSelection) {
                 var sel = window.getSelection();
@@ -104,7 +105,11 @@
                 }
             };
         }
-    })();
+    })();*/
+
+    util.restoreSelection = range.restore;
+    util.saveSelection = range.get;
+    util.replaceSelection = range.replace;
 
     util.insertAtCursor = function(text, el) {
         text = ' ' + text;
