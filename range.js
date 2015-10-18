@@ -21,6 +21,7 @@
                         ranges.push(sel.getRangeAt(i));
                     }
                 }
+                return ranges;
             };
         } else if (document.selection && document.selection.createRange) {
             return function() {
