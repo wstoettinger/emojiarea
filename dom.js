@@ -25,26 +25,10 @@
         node.dispatchEvent(event);
     }
 
-    function removeChildren(node) {
-        while (node.firstChild)
-            node.removeChild(node.firstChild);
-    }
-
     function appendChildren(node, children) {
         children.forEach(function(child) {
             node.appendChild(child);
         });
-    }
-
-    function numberInParent(child, childNodes) {
-        for (var i = 0; i < childNodes.length; i++) {
-            if (childNodes[i] === child)
-                return i;
-        }
-
-        // We are not in a child node, but in the editor itself. We return -1 and use offsets instead
-
-        return -1;
     }
 
     function isTextNode(node) {
@@ -58,9 +42,7 @@
     return {
         addEventListener: addEventListener,
         dispatchEvent: dispatchEvent,
-        removeChildren: removeChildren,
         appendChildren: appendChildren,
-        numberInParent: numberInParent,
         isTextNode: isTextNode,
         isImageNode: isImageNode
     };

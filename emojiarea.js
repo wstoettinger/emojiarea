@@ -46,17 +46,6 @@
     };
 
 
-    util.restoreSelection = range.restore;
-    util.saveSelection = range.get;
-    util.replaceSelection = range.replace;
-    util.addEventListener = dom.addEventListener;
-    util.dispatchEvent = dom.dispatchEvent;
-    util.removeChildren = dom.removeChildren;
-    util.appendChildren = dom.appendChildren;
-    util.childNumber = dom.numberInParent;
-    util.isTextNode = dom.isTextNode;
-    util.isImageNode = dom.isImageNode;
-
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     window.emojiareaOptions = {
@@ -96,7 +85,7 @@
             parts.push(document.createTextNode(html));
         }
 
-        if (util.isImageNode(parts[parts.length - 1])) {
+        if (dom.isImageNode(parts[parts.length - 1])) {
             parts.push(document.createTextNode(''));
         }
         console.log('parseText:', parts);
@@ -151,14 +140,14 @@
         var enableObjectResizing = function() { document.execCommand('enableObjectResizing', false, false); };
         var disableObjectResizing = function() { document.execCommand('enableObjectResizing', true, true); };
 
-        util.addEventListener(editor, 'input', onChange);
-        util.addEventListener(editor, ['mousedown', 'focus'], enableObjectResizing);
-        util.addEventListener(editor, 'blur', disableObjectResizing);
+        dom.addEventListener(editor, 'input', onChange);
+        dom.addEventListener(editor, ['mousedown', 'focus'], enableObjectResizing);
+        dom.addEventListener(editor, 'blur', disableObjectResizing);
 
         this.editor = editor;
 
         var html = parseText(this.textarea.innerHTML);
-        util.appendChildren(this.editor, html);
+        dom.appendChildren(this.editor, html);
         this.lastTextValue = this.val();
         this.textarea.style.display = 'none';
 
@@ -166,9 +155,9 @@
 
         this.setup();
 
-        util.addEventListener(this.button, 'mousedown', function() {
+        dom.addEventListener(this.button, 'mousedown', function() {
             if (self.hasFocus) {
-                self.selection = util.saveSelection();
+                self.selection = range.get();
             }
         });
     };
@@ -186,8 +175,8 @@
     EmojiArea.prototype.setup = function() {
         var self = this;
 
-        util.addEventListener(this.editor, 'focus', function() { self.hasFocus = true; });
-        util.addEventListener(this.editor, 'blur', function() { self.hasFocus = false; });
+        dom.addEventListener(this.editor, 'focus', function() { self.hasFocus = true; });
+        dom.addEventListener(this.editor, 'blur', function() { self.hasFocus = false; });
 
         this.setupButton();
     };
@@ -207,7 +196,7 @@
             button = '';
         }
 
-        util.addEventListener(button, 'click', function(e) {
+        dom.addEventListener(button, 'click', function(e) {
             EmojuMenu.show(self);
             e.stopPropagation();
         });
@@ -261,11 +250,11 @@
         if (img.attachEvent) {
             img.attachEvent('onresizestart', function(e) { e.returnValue = false; }, false);
         }
-        util.dispatchEvent(this.editor, 'focus');
+        dom.dispatchEvent(this.editor, 'focus');
         if (this.selection) {
-            util.restoreSelection(this.selection);
+            range.restore(this.selection);
         }
-        try { util.replaceSelection(img); } catch (e) {}
+        try { range.replace(img); } catch (e) {}
         this.onChange();
     };
 
@@ -337,23 +326,23 @@
 
         body.appendChild(this.menu);
 
-        util.addEventListener(body, 'keydown', function(e) {
+        dom.addEventListener(body, 'keydown', function(e) {
             if (e.keyCode === KEY_ESC || e.keyCode === KEY_TAB) {
                 self.hide();
             }
         });
 
-        util.addEventListener(body, 'mouseup', function() {
+        dom.addEventListener(body, 'mouseup', function() {
             self.hide();
         });
 
-        util.addEventListener(window, 'resize', function() {
+        dom.addEventListener(window, 'resize', function() {
             if (self.visible) {
                 //self.reposition();
             }
         });
 
-        util.addEventListener(this.menu, 'mouseup', function(e) {
+        dom.addEventListener(this.menu, 'mouseup', function(e) {
             e.stopPropagation();
             return false;
         });
@@ -415,7 +404,7 @@
                 activeGroup.classList.remove('active');
                 groupElement.classList.add('active');
             };
-            util.addEventListener(a, 'click', onClick);
+            dom.addEventListener(a, 'click', onClick);
 
 
             for (var key in options[group].icons) {
