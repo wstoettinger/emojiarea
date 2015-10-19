@@ -1,28 +1,30 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="utf-8">
-		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-		<title></title>
-		<meta name="description" content="">
-		<meta name="viewport" content="width=device-width">
-		<link rel="stylesheet" href="../emojiarea.css">
-		<link rel="stylesheet" href="stylesheet.css">
-		<script src="../emojiarea.js"></script>
-		<script src="../packs/basic/emojis.js"></script>
-		<link rel="stylesheet" href="fontello/css/fontello.css">
-	</head>
-	<body>
-		<h1>Emojiarea.js Example</h1>
-		
-		<div class="example">
-			<h2>WYSIWYG</h2>
-			<textarea rows="5" class="emojis-wysiwyg">:neckbeard:</textarea>
-			<h3>Value:</h3>
-			<div class="value"><pre id="emojis-wysiwyg-value"></pre></div>
-		</div>
-		
-		<script>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width">
+        <link rel="stylesheet" href="../emojiarea.css">
+        <link rel="stylesheet" href="stylesheet.css">
+        <script src="../dom.js"></script>
+        <script src="../range.js"></script>
+        <script src="../emojiarea.js"></script>
+        <script src="../packs/basic/emojis.js"></script>
+        <link rel="stylesheet" href="fontello/css/fontello.css">
+    </head>
+    <body>
+        <h1>Emojiarea.js Example</h1>
+        
+        <div class="example">
+            <h2>WYSIWYG</h2>
+            <textarea rows="5" class="emojis-wysiwyg">Hello :neckbeard:</textarea>
+            <h3>Value:</h3>
+            <div class="value"><pre id="emojis-wysiwyg-value"></pre></div>
+        </div>
+        
+        <script>
         var textarea = document.querySelector('.emojis-wysiwyg');
         var wysiwyg = new EmojiArea(textarea, {wysiwyg: true});
         var wysiwygValue = document.querySelector('#emojis-wysiwyg-value');
@@ -35,6 +37,6 @@
         var event = document.createEvent('HTMLEvents');
         event.initEvent('input', true, false);
         wysiwyg.editor.dispatchEvent(event);
-		</script>
-	</body>
+        </script>
+    </body>
 </html>
