@@ -37,26 +37,6 @@
 
     var util = {};
 
-    util.restoreSelection = range.restore;
-    util.saveSelection = range.get;
-    util.replaceSelection = range.replace;
-
-    util.insertAtCursor = function(text, el) {
-        text = ' ' + text;
-        var val = el.value, endIndex, startIndex, range;
-        if (typeof el.selectionStart != 'undefined' && typeof el.selectionEnd != 'undefined') {
-            startIndex = el.selectionStart;
-            endIndex = el.selectionEnd;
-            el.value = val.substring(0, startIndex) + text + val.substring(el.selectionEnd);
-            el.selectionStart = el.selectionEnd = startIndex + text.length;
-        } else if (typeof document.selection != 'undefined' && typeof document.selection.createRange != 'undefined') {
-            el.focus();
-            range = document.selection.createRange();
-            range.text = text;
-            range.select();
-        }
-    };
-
     util.escapeRegex = function(str) {
         return (str + '').replace(/([.?*+^$[\]\\(){}|-])/g, '\\$1');
     };
@@ -65,6 +45,10 @@
         return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     };
 
+
+    util.restoreSelection = range.restore;
+    util.saveSelection = range.get;
+    util.replaceSelection = range.replace;
     util.addEventListener = dom.addEventListener;
     util.dispatchEvent = dom.dispatchEvent;
     util.removeChildren = dom.removeChildren;
@@ -139,12 +123,10 @@
         editor.setAttribute('contentEditable', true);
 
         var onChange = function() { return self.onChange.apply(self, arguments); };
-        // var onPaste = function() { return self.onPaste.apply(self, arguments); };
         var enableObjectResizing = function() { document.execCommand('enableObjectResizing', false, false); };
         var disableObjectResizing = function() { document.execCommand('enableObjectResizing', true, true); };
 
         util.addEventListener(editor, 'input', onChange);
-        // util.addEventListener(editor, 'paste', onPaste);
         util.addEventListener(editor, ['mousedown', 'focus'], enableObjectResizing);
         util.addEventListener(editor, 'blur', disableObjectResizing);
 
