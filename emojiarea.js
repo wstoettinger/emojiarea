@@ -58,7 +58,7 @@
         }
     };
 
-    var emojiRegexp = /:[a-z0-9-_+]+:/g;
+    var emojiRegexp = /:[a-z0-9-_+]+:/;
 
     function hasEmoji() {
         var selection = range.get();
@@ -79,15 +79,25 @@
     }
 
     function parse(match) {
+        var start = match.index;
+        var end = start + match[0].length;
         var selection = range.get();
         var _range = selection[0];
+        if (_range.startOffset !== end) {
+            // We have probably pasted some text containing a smiley in the middle,
+            // we need to move to the correct place first
+            _range.setStart(_range.startContainer, end);
+            _range.collapse(true);
+        }
         var emoji = match[0];
         var image = EmojiArea.findIcon(emoji);
         _range.insertNode(image);
         var previousText = image.previousSibling;
         previousText.textContent = previousText.textContent.replace(emoji, '');
-        _range.setStartAfter(image);
-        range.restore(selection);
+        var nextText = image.nextSibling;
+        _range.setStart(nextText, 0);
+        _range.collapse(true);
+        range.restore([_range]);
 
         return true;
     }
