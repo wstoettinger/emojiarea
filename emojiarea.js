@@ -58,22 +58,29 @@
         }
     };
 
-    function parse() {
+    var emojiRegexp = /:[a-z0-9-_+]+:/g;
+
+    function hasEmoji() {
         var selection = range.get();
         if (!selection.length)
-            return;
+            return false;
 
         var _range = selection[0];
         var currentNode = _range.startContainer;
         if (!dom.isTextNode(currentNode))
-            return;
+            return false;
 
-        var regexp = /:[a-z0-9-_+]+:/g;
         var text = currentNode.textContent;
-        var match = regexp.exec(text);
+        var match = emojiRegexp.exec(text);
         if (!match)
-            return;
+            return false;
 
+        return match;
+    }
+
+    function parse(match) {
+        var selection = range.get();
+        var _range = selection[0];
         var emoji = match[0];
         var image = EmojiArea.findIcon(emoji);
         _range.insertNode(image);
@@ -81,6 +88,8 @@
         previousText.textContent = previousText.textContent.replace(emoji, '');
         _range.setStartAfter(image);
         range.restore(selection);
+
+        return true;
     }
 
     /**
@@ -122,7 +131,7 @@
             range.restore([_range]);
         }, 0);
         setTimeout(function() {
-            parse();
+            dom.dispatchEvent(self.editor, 'input');
         }, 0);
 
         this.lastTextValue = this.val();
@@ -217,8 +226,10 @@
     };
 
     EmojiArea.prototype.onChange = function() {
-        console.log('onChange:', this.val());
-        parse();
+        var match;
+        while ((match = hasEmoji())) {
+            parse(match);
+        }
     };
 
     EmojiArea.prototype.insert = function(group, emoji) {
