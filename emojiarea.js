@@ -120,7 +120,6 @@
             var _range = document.createRange();
             _range.setStart(textElement, textElement.textContent.length);
             range.restore([_range]);
-            this.editor.focus();
         }, 0);
         setTimeout(function() {
             parse();
