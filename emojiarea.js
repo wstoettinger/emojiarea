@@ -33,21 +33,6 @@
     var KEY_ESC = 27;
     var KEY_TAB = 9;
 
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-    var util = {};
-
-    util.escapeRegex = function(str) {
-        return (str + '').replace(/([.?*+^$[\]\\(){}|-])/g, '\\$1');
-    };
-
-    util.htmlEntities = function(str) {
-        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    };
-
-
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
     window.emojiareaOptions = {
         path: '',
         icons: {},
@@ -57,6 +42,10 @@
             buttonPosition: 'after'
         }
     };
+
+    function htmlEntities(str) {
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
 
     var emojiRegexp = /:[a-z0-9-_+]+:/;
 
@@ -148,7 +137,6 @@
             range.restore([_range]);
         }, 0);
 
-        this.lastTextValue = this.val();
         this.textarea.style.display = 'none';
 
         textarea.parentNode.insertBefore(editor, textarea.nextSibling);
@@ -213,7 +201,7 @@
 
         var img = document.createElement('img');
         img.src = path + filename;
-        img.alt = util.htmlEntities(emoji);
+        img.alt = htmlEntities(emoji);
         return img;
     };
 
@@ -231,7 +219,7 @@
 
                         var img = document.createElement('img');
                         img.src = path + filename;
-                        img.alt = util.htmlEntities(key);
+                        img.alt = htmlEntities(key);
                         return img;
                     }
                 }
@@ -414,11 +402,11 @@
                     var filename = options[key];
                     var emoji = document.createElement('a');
                     emoji.href = 'javascript:void(0)';
-                    emoji.title = util.htmlEntities(key);
+                    emoji.title = htmlEntities(key);
                     emoji.innerHTML = EmojiArea.createIcon(group, key);
                     groupElement.appendChild(emoji);
                     // TODO: Add span label
-                    //html.push('<a href="javascript:void(0)" title="' + util.htmlEntities(key) + '">' + EmojiArea.createIcon(group, key) + '<span class="label">' + util.htmlEntities(key) + '</span></a>');
+                    //html.push('<a href="javascript:void(0)" title="' + htmlEntities(key) + '">' + EmojiArea.createIcon(group, key) + '<span class="label">' + htmlEntities(key) + '</span></a>');
                 }
             }
             this.items.appendChild(groupElement);
