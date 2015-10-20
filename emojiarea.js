@@ -63,7 +63,8 @@
         if (!selection.length)
             return;
 
-        var currentNode = selection[0].startContainer;
+        var _range = selection[0];
+        var currentNode = _range.startContainer;
         if (!dom.isTextNode(currentNode))
             return;
 
@@ -75,10 +76,10 @@
 
         var emoji = match[0];
         var image = EmojiArea.findIcon(emoji);
-        selection[0].insertNode(image);
+        _range.insertNode(image);
         var previousText = image.previousSibling;
         previousText.textContent = previousText.textContent.replace(emoji, '');
-        selection[0].setStartAfter(image);
+        _range.setStartAfter(image);
         range.restore(selection);
     }
 
