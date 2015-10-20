@@ -58,40 +58,6 @@
         }
     };
 
-    function parseText(html) {
-        var parts = [];
-
-        var regexp = /:[a-z0-9-_+]+:/g;
-        var lastIndex = 0;
-        while (true) {
-            var match = regexp.exec(html);
-            if (!match)
-                break;
-
-            var emoji = EmojiArea.findIcon(match[0]);
-            if (!emoji)
-                continue;
-
-            var index = match.index;
-            var length = match[0].length;
-            parts.push(document.createTextNode(html.slice(lastIndex, index)));
-            parts.push(emoji);
-            lastIndex = index + length;
-        }
-
-        html = html.slice(lastIndex);
-
-        if (html !== '') {
-            parts.push(document.createTextNode(html));
-        }
-
-        if (dom.isImageNode(parts[parts.length - 1])) {
-            parts.push(document.createTextNode(''));
-        }
-        console.log('parseText:', parts);
-        return parts;
-    }
-
     function parse() {
         var selection = range.get();
         if (!selection.length)
@@ -109,7 +75,6 @@
 
         var emoji = match[0];
         var image = EmojiArea.findIcon(emoji);
-        console.log('current text',currentNode.textContent);
         selection[0].insertNode(image);
         var previousText = image.previousSibling;
         previousText.textContent = previousText.textContent.replace(emoji, '');
@@ -133,6 +98,7 @@
 
         var editor = document.createElement('div');
         editor.classList.add('emoji-wysiwyg-editor');
+        editor.tabIndex = 0;
         editor.innerText =  textarea.innerText;
         editor.setAttribute('contentEditable', true);
 
@@ -146,8 +112,19 @@
 
         this.editor = editor;
 
-        var html = parseText(this.textarea.innerHTML);
-        dom.appendChildren(this.editor, html);
+        var text = this.textarea.innerHTML;
+        dom.appendChildren(this.editor, [document.createTextNode(text)]);
+        var textElement = this.editor.lastChild;
+        setTimeout(function() {
+            var _range = document.createRange();
+            _range.setStart(textElement, textElement.textContent.length);
+            range.restore([_range]);
+            this.editor.focus();
+        }, 0);
+        setTimeout(function() {
+            parse();
+        }, 0);
+
         this.lastTextValue = this.val();
         this.textarea.style.display = 'none';
 
