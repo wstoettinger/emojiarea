@@ -1,5 +1,7 @@
 #EmojiArea
 
+**Note: this will probably not work like you expect at the moment. It is heavily under development. Some of the things below are not even true.**
+
 A small plugin for turning textareas into ones that support emojis. No external dependencies. Uses `contenteditable` for rendering. Bundles twitters twemoji set, but you are of course free to roll your own.
 
 ## What it looks like
