@@ -142,6 +142,10 @@
         }, 0);
         setTimeout(function() {
             dom.dispatchEvent(self.editor, 'input');
+            var _range = document.createRange();
+            _range.selectNode(self.editor.lastChild);
+            _range.collapse(false);
+            range.restore([_range]);
         }, 0);
 
         this.lastTextValue = this.val();
