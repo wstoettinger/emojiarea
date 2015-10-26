@@ -26,6 +26,9 @@
     }
 
     function appendChildren(node, children) {
+        if (children.constructor !== Array) {
+            children = [children];
+        }
         children.forEach(function(child) {
             node.appendChild(child);
         });

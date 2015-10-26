@@ -104,7 +104,28 @@
 
         this.options = options;
         this.textarea = textarea;
+        this.editor = this.createEditor();
+        textarea.parentNode.insertBefore(this.editor, textarea.nextSibling);
+        this.textarea.style.display = 'none';
 
+        var text = this.textarea.innerHTML;
+        dom.appendChildren(this.editor, document.createTextNode(text));
+
+        this.setup();
+    };
+
+    EmojiArea.expose = function($) {
+        $.fn.emojiarea = function(options) {
+            options = $.extend({}, emojiareaOptions.defaults, options);
+            return this.each(function() {
+                var textarea = this;
+                new EmojiArea(textarea, options);
+            });
+        };
+    };
+
+    EmojiArea.prototype.createEditor = function() {
+        var self = this;
         var editor = document.createElement('div');
         editor.classList.add('emoji-wysiwyg-editor');
         editor.tabIndex = 0;
@@ -119,10 +140,16 @@
         dom.addEventListener(editor, ['mousedown', 'focus'], enableObjectResizing);
         dom.addEventListener(editor, 'blur', disableObjectResizing);
 
-        this.editor = editor;
+        return editor;
+    };
 
-        var text = this.textarea.innerHTML;
-        dom.appendChildren(this.editor, [document.createTextNode(text)]);
+    EmojiArea.prototype.setup = function() {
+        var self = this;
+
+        dom.addEventListener(this.editor, 'focus', function() { self.hasFocus = true; });
+        dom.addEventListener(this.editor, 'blur', function() { self.hasFocus = false; });
+        this.setupButton();
+
         var textElement = this.editor.lastChild;
         setTimeout(function() {
             var _range = document.createRange();
@@ -136,37 +163,6 @@
             _range.collapse(false);
             range.restore([_range]);
         }, 0);
-
-        this.textarea.style.display = 'none';
-
-        textarea.parentNode.insertBefore(editor, textarea.nextSibling);
-
-        this.setup();
-
-        dom.addEventListener(this.button, 'mousedown', function() {
-            if (self.hasFocus) {
-                self.selection = range.get();
-            }
-        });
-    };
-
-    EmojiArea.expose = function($) {
-        $.fn.emojiarea = function(options) {
-            options = $.extend({}, emojiareaOptions.defaults, options);
-            return this.each(function() {
-                var textarea = this;
-                new EmojiArea(textarea, options);
-            });
-        };
-    };
-
-    EmojiArea.prototype.setup = function() {
-        var self = this;
-
-        dom.addEventListener(this.editor, 'focus', function() { self.hasFocus = true; });
-        dom.addEventListener(this.editor, 'blur', function() { self.hasFocus = false; });
-
-        this.setupButton();
     };
 
     EmojiArea.prototype.setupButton = function() {
